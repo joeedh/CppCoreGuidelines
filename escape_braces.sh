@@ -1,3 +1,4 @@
 #!/bin/bash
 
-sed "s/{{/{{\"{{\"}}/" CppCoreGuidelines.md > CppCoreGuidelines.md
+cp CppCoreGuidelines.md temp
+sed "s/{{/{{\"{{\"}}/" temp > CppCoreGuidelines.md
