@@ -1,7 +1,8 @@
 # <a name="main"></a>C++ Core Guidelines
 
-August 19, 2021
+June 17, 2021
 
+# put-index-page-here
 
 Editors:
 
@@ -183,7 +184,7 @@ You can look at design concepts used to express the rules:
 * postcondition: ???
 * resource: ???
 
-# <a name="S-abstract"></a>Abstract
+# <a name="S-abstract" tags="intro,abstract"></a>Abstract
 
 This document is a set of guidelines for using C++ well.
 The aim of this document is to help people to use modern C++ effectively.
@@ -483,7 +484,7 @@ Philosophical rules are generally not mechanically checkable.
 However, individual rules reflecting these philosophical themes are.
 Without a philosophical basis, the more concrete/specific/checkable rules lack rationale.
 
-### <a name="Rp-direct"></a>P.1: Express ideas directly in code
+### <a name="Rp-direct" tags="code clarity"></a>P.1: Express ideas directly in code
 
 ##### Reason
 
@@ -1248,7 +1249,7 @@ Interface rule summary:
 * [E: Error handling](#S-errors)
 * [T: Templates and generic programming](#S-templates)
 
-### <a name="Ri-explicit"></a>I.1: Make interfaces explicit
+### <a name="Ri-explicit" tags="interfaces"></a>I.1: Make interfaces explicit
 
 ##### Reason
 
@@ -1292,7 +1293,7 @@ Functions can be function templates and sets of functions can be classes or clas
 * (Simple) A function should not make control-flow decisions based on the values of variables declared at namespace scope.
 * (Simple) A function should not write to variables declared at namespace scope.
 
-### <a name="Ri-global"></a>I.2: Avoid non-`const` global variables
+### <a name="Ri-global" tags="interfaces,const"></a>I.2: Avoid non-`const` global variables
 
 ##### Reason
 
@@ -1356,7 +1357,7 @@ The rule is "avoid", not "don't use." Of course there will be (rare) exceptions,
 (Simple) Report all non-`const` variables declared at namespace scope and global pointers/references to non-const data.
 
 
-### <a name="Ri-singleton"></a>I.3: Avoid singletons
+### <a name="Ri-singleton" tags="singleton,global variables"></a>I.3: Avoid singletons
 
 ##### Reason
 
@@ -1417,7 +1418,7 @@ Very hard in general.
 * Look for classes for which only a single object is created (by counting objects or by examining constructors).
 * If a class X has a public static function that contains a function-local static of the class' type X and returns a pointer or reference to it, ban that.
 
-### <a name="Ri-typed"></a>I.4: Make interfaces precisely and strongly typed
+### <a name="Ri-typed" tags="interfaces"></a>I.4: Make interfaces precisely and strongly typed
 
 ##### Reason
 
@@ -3078,12 +3079,13 @@ Such older advice is now obsolete; it does not add value, and it interferes with
 
     const vector<int> fct();    // bad: that "const" is more trouble than it is worth
 
-    vector<int> g(const vector<int>& vx)
+    void g(vector<int>& vx)
     {
         // ...
         fct() = vx;   // prevented by the "const"
         // ...
-        return fct(); // expensive copy: move semantics suppressed by the "const"
+        vx = fct(); // expensive copy: move semantics suppressed by the "const"
+        // ...
     }
 
 The argument for adding `const` to a return value is that it prevents (very rare) accidental access to a temporary.
@@ -5127,6 +5129,7 @@ We can imagine one case where you could want a protected virtual destructor: Whe
 ##### Enforcement
 
 * A class with any virtual functions should have a destructor that is either public and virtual or else protected and non-virtual.
+* If a class inherits publicly from a base class, the base class should have a destructor that is either public and virtual or else protected and non-virtual.
 
 ### <a name="Rc-dtor-fail"></a>C.36: A destructor must not fail
 
@@ -8061,7 +8064,10 @@ Casting to a reference expresses that you intend to end up with a valid object, 
 
 ##### Example
 
-    ???
+    std::string f(Base& b)
+    {
+        return dynamic_cast<Derived&>(b).to_string();
+    }
 
 ##### Enforcement
 
@@ -8809,12 +8815,12 @@ If you wanted to see the bytes of an `int`, use a (named) cast:
 
     void if_you_must_pun(int& x)
     {
-        auto p = reinterpret_cast<unsigned char*>(&x);
+        auto p = reinterpret_cast<std::byte*>(&x);
         cout << p[0] << '\n';     // OK; better
         // ...
     }
 
-Accessing the result of a `reinterpret_cast` to a type different from the object's declared type is defined behavior. (Using `reinterpret_cast` is discouraged,
+Accessing the result of a `reinterpret_cast` from the object's declared type to `char*`, `unsigned char*`, or `std::byte*` is defined behavior. (Using `reinterpret_cast` is discouraged,
 but at least we can see that something tricky is going on.)
 
 ##### Note
@@ -9135,7 +9141,7 @@ Here, we ignore such cases.
   * [R.31: If you have non-`std` smart pointers, follow the basic pattern from `std`](#Rr-smart)
   * [R.32: Take a `unique_ptr<widget>` parameter to express that a function assumes ownership of a `widget`](#Rr-uniqueptrparam)
   * [R.33: Take a `unique_ptr<widget>&` parameter to express that a function reseats the `widget`](#Rr-reseat)
-  * [R.34: Take a `shared_ptr<widget>` parameter to express that a function is part owner](#Rr-sharedptrparam-owner)
+  * [R.34: Take a `shared_ptr<widget>` parameter to express shared ownership](#Rr-sharedptrparam-owner)
   * [R.35: Take a `shared_ptr<widget>&` parameter to express that a function might reseat the shared pointer](#Rr-sharedptrparam)
   * [R.36: Take a `const shared_ptr<widget>&` parameter to express that it might retain a reference count to the object ???](#Rr-sharedptrparam-const)
   * [R.37: Do not pass a pointer or reference obtained from an aliased smart pointer](#Rr-smartptrget)
@@ -9810,7 +9816,7 @@ Using `unique_ptr` in this way both documents and enforces the function call's r
 * (Simple) Warn if a function takes a `Unique_pointer<T>` parameter by lvalue reference and does not either assign to it or call `reset()` on it on at least one code path. Suggest taking a `T*` or `T&` instead.
 * (Simple) ((Foundation)) Warn if a function takes a `Unique_pointer<T>` parameter by reference to `const`. Suggest taking a `const T*` or `const T&` instead.
 
-### <a name="Rr-sharedptrparam-owner"></a>R.34: Take a `shared_ptr<widget>` parameter to express that a function is part owner
+### <a name="Rr-sharedptrparam-owner"></a>R.34: Take a `shared_ptr<widget>` parameter to express shared ownership
 
 ##### Reason
 
@@ -9818,11 +9824,16 @@ This makes the function's ownership sharing explicit.
 
 ##### Example, good
 
-    void share(shared_ptr<widget>);            // share -- "will" retain refcount
-
-    void may_share(const shared_ptr<widget>&); // "might" retain refcount
-
-    void reseat(shared_ptr<widget>&);          // "might" reseat ptr
+    class WidgetUser
+    {
+    public:
+        // WidgetUser will share ownership of the widget
+        explicit WidgetUser(std::shared_ptr<widget> w) noexcept:
+            m_widget{std::move(w)} {}
+        // ...
+    private:
+        std::shared_ptr<widget> m_widget;
+    };
 
 ##### Enforcement
 
@@ -9842,11 +9853,11 @@ This makes the function's reseating explicit.
 
 ##### Example, good
 
-    void share(shared_ptr<widget>);            // share -- "will" retain refcount
-
-    void reseat(shared_ptr<widget>&);          // "might" reseat ptr
-
-    void may_share(const shared_ptr<widget>&); // "might" retain refcount
+    void ChangeWidget(std::shared_ptr<widget>& w)
+    {
+        // This will change the callers widget
+        w = std::make_shared<widget>(widget{});
+    }
 
 ##### Enforcement
 
@@ -10469,7 +10480,9 @@ When concepts become available, we can (and should) be more specific about the t
 
 ##### Example (C++17)
 
-    auto [ quotient, remainder ] = div(123456, 73);   // break out the members of the div_t result
+    std::set<int> values;
+    // ...
+    auto [ position, newly_inserted ] = values.insert(5);   // break out the members of the std::pair
 
 ##### Enforcement
 
@@ -11699,17 +11712,24 @@ A key example is basic narrowing:
 
 The guidelines support library offers a `narrow_cast` operation for specifying that narrowing is acceptable and a `narrow` ("narrow if") that throws an exception if a narrowing would throw away legal values:
 
-    i = narrow_cast<int>(d);   // OK (you asked for it): narrowing: i becomes 7
-    i = narrow<int>(d);        // OK: throws narrowing_error
+    i = gsl::narrow_cast<int>(d);   // OK (you asked for it): narrowing: i becomes 7
+    i = gsl::narrow<int>(d);        // OK: throws narrowing_error
 
 We also include lossy arithmetic casts, such as from a negative floating point type to an unsigned integral type:
 
     double d = -7.9;
     unsigned u = 0;
 
-    u = d;                          // BAD
-    u = narrow_cast<unsigned>(d);   // OK (you asked for it): u becomes 4294967289
-    u = narrow<unsigned>(d);        // OK: throws narrowing_error
+    u = d;                               // bad: narrowing
+    u = gsl::narrow_cast<unsigned>(d);   // OK (you asked for it): u becomes 4294967289
+    u = gsl::narrow<unsigned>(d);        // OK: throws narrowing_error
+
+##### Note
+
+This rule does not apply to [contextual conversions to bool](https://en.cppreference.com/w/cpp/language/implicit_conversion#Contextual_conversions):
+
+    if (ptr) do_something(*ptr);   // OK: ptr is used as a condition
+    bool b = ptr;                  // bad: narrowing
 
 ##### Enforcement
 
@@ -21181,8 +21201,8 @@ A `char*` that points to more than one `char` but is not a C-style string (e.g.,
 * `czstring`   // a `const char*` supposed to be a C-style string; that is, a zero-terminated sequence of `const` `char` or `nullptr`
 
 Logically, those last two aliases are not needed, but we are not always logical, and they make the distinction between a pointer to one `char` and a pointer to a C-style string explicit.
-A sequence of characters that is not assumed to be zero-terminated should be a `char*`, rather than a `zstring`.
-French accent optional.
+A sequence of characters that is not assumed to be zero-terminated should be a `span<char>`, or if that is impossible because of ABI issues a `char*`, rather than a `zstring`.
+
 
 Use `not_null<zstring>` for C-style strings that cannot be `nullptr`. ??? Do we need a name for `not_null<zstring>`? or is its ugliness a feature?
 
