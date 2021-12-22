@@ -183,7 +183,7 @@ You can look at design concepts used to express the rules:
 * postcondition: ???
 * resource: ???
 
-# <a name="S-abstract" tags="intro,abstract"></a>Abstract
+# <a name="S-abstract"></a>Abstract
 
 This document is a set of guidelines for using C++ well.
 The aim of this document is to help people to use modern C++ effectively.
@@ -483,7 +483,7 @@ Philosophical rules are generally not mechanically checkable.
 However, individual rules reflecting these philosophical themes are.
 Without a philosophical basis, the more concrete/specific/checkable rules lack rationale.
 
-### <a name="Rp-direct" tags="code clarity,philosophy"></a>P.1: Express ideas directly in code
+### <a name="Rp-direct" tags="code clarity"></a>P.1: Express ideas directly in code
 
 ##### Reason
 
@@ -4694,7 +4694,7 @@ This is known as "the rule of zero".
 (Not enforceable) While not enforceable, a good static analyzer can detect patterns that indicate a possible improvement to meet this rule.
 For example, a class with a (pointer, size) pair of member and a destructor that `delete`s the pointer could probably be converted to a `vector`.
 
-### <a name="Rc-five" tags="class,defaults,constructors,destructors,copy,value semantics,move semantics"></a>C.21: If you define or `=delete` any copy, move, or destructor function, define or `=delete` them all
+### <a name="Rc-five" tags="class,defaults,constructors,destructors,copy semantics,value semantics,move semantics"></a>C.21: If you define or `=delete` any copy, move, or destructor function, define or `=delete` them all
 
 ##### Reason
 
@@ -22797,11 +22797,6 @@ Alternatively, we will decide that no change is needed and delete the entry.
 * See Also:
   * [Type Safety](#index.type-safety)  
   
-## <a name="index.abstract"></a>Abstract  
-* [Abstract](#S-abstract)
-* See Also:
-  * [Intro](#index.intro)  
-  
 ## <a name="index.argument"></a>Argument  
 * [F.60: Prefer `T*` over `T&` when "no argument" is a valid option](#Rf-ptr-ref)
 * See Also:
@@ -22877,7 +22872,7 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Reference](#index.reference)
   * [Defaults](#index.defaults)
   * [Constructors](#index.constructors)
-  * [Copy](#index.copy)
+  * [Copy Semantics](#index.copy-semantics)
   * [Destructors](#index.destructors)
   * [Move Semantics](#index.move-semantics)
   * [Value Semantics](#index.value-semantics)
@@ -22887,7 +22882,6 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Destructor](#index.destructor)
   * [Noexcept](#index.noexcept)
   * [Error Checking](#index.error-checking)
-  * [Copy Semantics](#index.copy-semantics)
   * [Members](#index.members)  
   
 ## <a name="index.class-members"></a>Class Members  
@@ -22909,7 +22903,6 @@ Alternatively, we will decide that no change is needed and delete the entry.
 * [F.56: Avoid unnecessary condition nesting](#F-nesting)
 * [C.3: Represent the distinction between an interface and an implementation using a class](#Rc-interface)
 * See Also:
-  * [Philosophy](#index.philosophy)
   * [Compile Time](#index.compile-time)
   * [Error Checking](#index.error-checking)
   * [Static Checking](#index.static-checking)
@@ -22971,13 +22964,12 @@ Alternatively, we will decide that no change is needed and delete the entry.
 * [C.45: Don't define a default constructor that only initializes data members; use in-class member initializers instead](#Rc-default)
 * See Also:
   * [Class](#index.class)
-  * [Copy](#index.copy)
+  * [Copy Semantics](#index.copy-semantics)
   * [Defaults](#index.defaults)
   * [Destructors](#index.destructors)
   * [Move Semantics](#index.move-semantics)
   * [Value Semantics](#index.value-semantics)
   * [Error Checking](#index.error-checking)
-  * [Copy Semantics](#index.copy-semantics)
   * [Members](#index.members)  
   
 ## <a name="index.contracts"></a>Contracts  
@@ -22989,8 +22981,9 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Preconditions](#index.preconditions)
   * [Postconditions](#index.postconditions)  
   
-## <a name="index.copy"></a>Copy  
+## <a name="index.copy-semantics"></a>Copy Semantics  
 * [C.21: If you define or `=delete` any copy, move, or destructor function, define or `=delete` them all](#Rc-five)
+* [C.43: Ensure that a copyable class has a default constructor](#Rc-default0)
 * See Also:
   * [Class](#index.class)
   * [Constructors](#index.constructors)
@@ -22998,13 +22991,6 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Destructors](#index.destructors)
   * [Move Semantics](#index.move-semantics)
   * [Value Semantics](#index.value-semantics)  
-  
-## <a name="index.copy-semantics"></a>Copy Semantics  
-* [C.43: Ensure that a copyable class has a default constructor](#Rc-default0)
-* See Also:
-  * [Class](#index.class)
-  * [Constructors](#index.constructors)
-  * [Defaults](#index.defaults)  
   
 ## <a name="index.data-declaration"></a>Data Declaration  
 * [C.7: Don't define a class or enum and declare a variable of its type in the same statement](#Rc-standalone)
@@ -23027,12 +23013,11 @@ Alternatively, we will decide that no change is needed and delete the entry.
 * See Also:
   * [Class](#index.class)
   * [Constructors](#index.constructors)
-  * [Copy](#index.copy)
+  * [Copy Semantics](#index.copy-semantics)
   * [Destructors](#index.destructors)
   * [Move Semantics](#index.move-semantics)
   * [Value Semantics](#index.value-semantics)
   * [Code Consistency](#index.code-consistency)
-  * [Copy Semantics](#index.copy-semantics)
   * [Members](#index.members)  
   
 ## <a name="index.destructor"></a>Destructor  
@@ -23052,7 +23037,7 @@ Alternatively, we will decide that no change is needed and delete the entry.
 * See Also:
   * [Class](#index.class)
   * [Constructors](#index.constructors)
-  * [Copy](#index.copy)
+  * [Copy Semantics](#index.copy-semantics)
   * [Defaults](#index.defaults)
   * [Move Semantics](#index.move-semantics)
   * [Value Semantics](#index.value-semantics)
@@ -23157,11 +23142,6 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Code Clarity](#index.code-clarity)
   * [Member Function](#index.member-function)  
   
-## <a name="index.intro"></a>Intro  
-* [Abstract](#S-abstract)
-* See Also:
-  * [Abstract](#index.abstract)  
-  
 ## <a name="index.iterators"></a>Iterators  
 * [T.11: Whenever possible use standard concepts](#Rt-std-concepts)
 * [T.24: Use tag classes or traits to differentiate concepts that differ only in semantics.](#Rt-tag)
@@ -23218,7 +23198,7 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Ownership](#index.ownership)
   * [Class](#index.class)
   * [Constructors](#index.constructors)
-  * [Copy](#index.copy)
+  * [Copy Semantics](#index.copy-semantics)
   * [Defaults](#index.defaults)
   * [Destructors](#index.destructors)
   * [Value Semantics](#index.value-semantics)  
@@ -23273,11 +23253,6 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Shared_ptr](#index.shared_ptr)
   * [Class](#index.class)
   * [Destructors](#index.destructors)  
-  
-## <a name="index.philosophy"></a>Philosophy  
-* [P.1: Express ideas directly in code](#Rp-direct)
-* See Also:
-  * [Code Clarity](#index.code-clarity)  
   
 ## <a name="index.pointer"></a>Pointer  
 * [I.12: Declare a pointer that must not be null as `not_null`](#Ri-nullptr)
@@ -23405,7 +23380,7 @@ Alternatively, we will decide that no change is needed and delete the entry.
   * [Function](#index.function)
   * [Class](#index.class)
   * [Constructors](#index.constructors)
-  * [Copy](#index.copy)
+  * [Copy Semantics](#index.copy-semantics)
   * [Defaults](#index.defaults)
   * [Destructors](#index.destructors)
   * [Move Semantics](#index.move-semantics)  
