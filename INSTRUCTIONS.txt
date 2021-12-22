@@ -5,7 +5,8 @@ How to update the gh-pages at http://isocpp.github.io/CppCoreGuidelines/
 3. git checkout gh-pages
 4. git checkout master -- CppCoreGuidelines.md
 
-5. Replace all instances of {{ with {{ "{{" }}
+5. cd scripts; python update_ghpages.py
+   This will replace all instances of {{ with {{ "{{" }}.
    This escapes the Liquid Template tag which has format {{ liquid }} 
    If you're lucky enough to use vi, your command is: %s/{{/{{ "{{" }}/g
    Remember to save the file!
