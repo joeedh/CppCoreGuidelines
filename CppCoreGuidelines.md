@@ -2,46 +2,6 @@
 
 June 17, 2021
 
-# Index Page  
-## <a name="index.abstract"></a>Abstract  
-* [Abstract](#S-abstract)
-* See Also:
-  * [Intro](#index.intro)  
-  
-## <a name="index.code-clarity"></a>Code Clarity  
-* [P.1: Express ideas directly in code](#Rp-direct)
-* See Also:
-  
-  
-## <a name="index.const"></a>Const  
-* [I.2: Avoid non-`const` global variables](#Ri-global)
-* See Also:
-  * [Interfaces](#index.interfaces)  
-  
-## <a name="index.global-variables"></a>Global Variables  
-* [I.3: Avoid singletons](#Ri-singleton)
-* See Also:
-  * [Singleton](#index.singleton)  
-  
-## <a name="index.interfaces"></a>Interfaces  
-* [I.1: Make interfaces explicit](#Ri-explicit)
-* [I.2: Avoid non-`const` global variables](#Ri-global)
-* [I.4: Make interfaces precisely and strongly typed](#Ri-typed)
-* See Also:
-  * [Const](#index.const)  
-  
-## <a name="index.intro"></a>Intro  
-* [Abstract](#S-abstract)
-* See Also:
-  * [Abstract](#index.abstract)  
-  
-## <a name="index.singleton"></a>Singleton  
-* [I.3: Avoid singletons](#Ri-singleton)
-* See Also:
-  * [Global Variables](#index.global-variables)  
-  
-
-
 Editors:
 
 * [Bjarne Stroustrup](http://www.stroustrup.com)
@@ -83,6 +43,7 @@ You can [read an explanation of the scope and structure of this Guide](#S-abstra
 * [CPL: C-style programming](#S-cpl)
 * [SF: Source files](#S-source)
 * [SL: The Standard Library](#S-stdlib)
+* [Index](#I-index)
 
 Supporting sections:
 
@@ -5477,7 +5438,7 @@ A class with members that all have default constructors implicitly gets a defaul
         vector<int> v;
     };
 
-    X x; // means X{{"{{"}}}, {}}; that is the empty string and the empty vector
+    X x; // means X{{  "{{"  }}}, {}}; that is the empty string and the empty vector
 
 Beware that built-in types are not properly default constructed:
 
@@ -7492,17 +7453,23 @@ Copying a polymorphic class is discouraged due to the slicing problem, see [C.67
 
     class B {
     public:
-        virtual owner<B*> clone() = 0;
         B() = default;
         virtual ~B() = default;
-        B(const B&) = delete;
-        B& operator=(const B&) = delete;
+        virtual gsl::owner<B*> clone() const = 0;
+    protected:
+         B(const B&) = default;
+         B& operator=(const B&) = default;
+         B(B&&) = default;
+         B& operator=(B&&) = default;
+        // ...
     };
 
     class D : public B {
     public:
-        owner<D*> clone() override;
-        ~D() override;
+        gsl::owner<D*> clone() const override
+        {
+            return new D{*this};
+        };
     };
 
 Generally, it is recommended to use smart pointers to represent ownership (see [R.20](#Rr-owner)). However, because of language rules, the covariant return type cannot be a smart pointer: `D::clone` can't return a `unique_ptr<D>` while `B::clone` returns `unique_ptr<B>`. Therefore, you either need to consistently return `unique_ptr<B>` in all overrides, or use `owner<>` utility from the [Guidelines Support Library](#SS-views).
@@ -8162,7 +8129,7 @@ Subscripting the resulting base pointer will lead to invalid object access and p
 
     void use(B*);
 
-    D a[] = {{"{{"}}1, 2}, {3, 4}, {5, 6}};
+    D a[] = {{  "{{"  }}1, 2}, {3, 4}, {5, 6}};
     B* p = a;     // bad: a decays to &a[0] which is converted to a B*
     p[1].x = 7;   // overwrite a[0].y
 
@@ -10440,7 +10407,10 @@ Flag variable and constant declarations with multiple declarators (e.g., `int* p
 
 Consider:
 
-    auto p = v.begin();   // vector<int>::iterator
+    auto p = v.begin();      // vector<DataRecord>::iterator
+    auto z1 = v[3];          // makes copy of DataRecord
+    auto& z2 = v[3];         // avoids copy
+    const auto& z3 = v[3];   // const and avoids copy
     auto h = t.future();
     auto q = make_unique<int[]>(s);
     auto f = [](int x) { return x + 10; };
@@ -11751,7 +11721,7 @@ Flag uses of `0` and `NULL` for pointers. The transformation might be helped by 
 
 ##### Reason
 
-Casts are a well-known source of errors. Make some optimizations unreliable.
+Casts are a well-known source of errors and make some optimizations unreliable.
 
 ##### Example, bad
 
@@ -12280,7 +12250,7 @@ In the rare cases where the slicing was deliberate the code can be surprising.
     class Shape { /* ... */ };
     class Circle : public Shape { /* ... */ Point c; int r; };
 
-    Circle c {{"{{"}}0, 0}, 42};
+    Circle c {{  "{{"  }}0, 0}, 42};
     Shape s {c};    // copy construct only the Shape part of Circle
     s = c;          // or copy assign only the Shape part of Circle
 
@@ -12288,7 +12258,7 @@ In the rare cases where the slicing was deliberate the code can be surprising.
     {
         dest = src;
     }
-    Circle c2 {{"{{"}}1, 1}, 43};
+    Circle c2 {{  "{{"  }}1, 1}, 43};
     assign(c, c2);   // oops, not the whole state is transferred
     assert(c == c2); // if we supply copying, we should also provide comparison,
                      // but this will likely return false
@@ -15569,7 +15539,7 @@ Error-handling rule summary:
 * [E.12: Use `noexcept` when exiting a function because of a `throw` is impossible or unacceptable](#Re-noexcept)
 * [E.13: Never throw while being the direct owner of an object](#Re-never-throw)
 * [E.14: Use purpose-designed user-defined types as exceptions (not built-in types)](#Re-exception-types)
-* [E.15: Catch exceptions from a hierarchy by reference](#Re-exception-ref)
+* [E.15: Throw by value, catch exceptions from a hierarchy reference](#Re-exception-ref)
 * [E.16: Destructors, deallocation, and `swap` must never fail](#Re-never-fail)
 * [E.17: Don't try to catch every exception in every function](#Re-not-always)
 * [E.18: Minimize the use of explicit `try`/`catch`](#Re-catch)
@@ -15605,7 +15575,7 @@ To make error handling systematic, robust, and non-repetitive.
 
     void use()
     {
-        Foo bar {{"{{"}}Thing{1}, Thing{2}, Thing{monkey}}, {"my_file", "r"}, "Here we go!"};
+        Foo bar {{  "{{"  }}Thing{1}, Thing{2}, Thing{monkey}}, {"my_file", "r"}, "Here we go!"};
         // ...
     }
 
@@ -16018,33 +15988,39 @@ The standard-library classes derived from `exception` should be used only as bas
 
 Catch `throw` and `catch` of a built-in type. Maybe warn about `throw` and `catch` using a standard-library `exception` type. Obviously, exceptions derived from the `std::exception` hierarchy are fine.
 
-### <a name="Re-exception-ref"></a>E.15: Catch exceptions from a hierarchy by reference
+### <a name="Re-exception-ref"></a>E.15: Throw by value, catch exceptions from a hierarchy reference
 
 ##### Reason
 
-To prevent slicing.
+Throwing by value (not by pointer) and catching by reference prevents copying, especially slicing base subobjects.
 
-##### Example
+##### Example; bad
 
     void f()
     {
         try {
             // ...
+            throw new widget{}; // don't: throw by value not by raw pointer
+            // ...
         }
-        catch (exception e) {   // don't: might slice
+        catch (base_class e) {  // don't: might slice
             // ...
         }
     }
 
 Instead, use a reference:
 
-    catch (exception& e) { /* ... */ }
+    catch (base_class& e) { /* ... */ }
 
 or - typically better still - a `const` reference:
 
-    catch (const exception& e) { /* ... */ }
+    catch (const base_class& e) { /* ... */ }
 
 Most handlers do not modify their exception and in general we [recommend use of `const`](#Res-const).
+
+##### Note
+
+Catch by value can be appropriate for a small value type such as an `enum` value.
 
 ##### Note
 
@@ -16052,7 +16028,8 @@ To rethrow a caught exception use `throw;` not `throw e;`. Using `throw e;` woul
 
 ##### Enforcement
 
-Flag by-value exceptions if their types are part of a hierarchy (could require whole-program analysis to be perfect).
+* Flag catching by value of a type that has a virtual function.
+* Flag throwing raw pointers.
 
 ### <a name="Re-never-fail"></a>E.16: Destructors, deallocation, and `swap` must never fail
 
@@ -16831,7 +16808,7 @@ Template definition rule summary:
 
 Template and hierarchy rule summary:
 
-* [T.80: Do not naively templatize a class hierarchy](#Rt-hier)
+* [T.80: Do not naïvely templatize a class hierarchy](#Rt-hier)
 * [T.81: Do not mix hierarchies and arrays](#Rt-array) // ??? somewhere in "hierarchies"
 * [T.82: Linearize a hierarchy when virtual functions are undesirable](#Rt-linear)
 * [T.83: Do not declare a member function template virtual](#Rt-virtual)
@@ -18345,7 +18322,7 @@ Templates are the backbone of C++'s support for generic programming and class hi
 for object-oriented programming.
 The two language mechanisms can be used effectively in combination, but a few design pitfalls must be avoided.
 
-### <a name="Rt-hier"></a>T.80: Do not naively templatize a class hierarchy
+### <a name="Rt-hier"></a>T.80: Do not naïvely templatize a class hierarchy
 
 ##### Reason
 
@@ -20339,7 +20316,7 @@ However, in the context of the styles of programming we recommend and support wi
 
 Even today, there can be contexts where the rules make sense.
 For example, lack of suitable tool support can make exceptions unsuitable in hard-real-time systems,
-but please don't naïvely trust "common wisdom" (e.g., unsupported statements about "efficiency");
+but please don't naïvelyi trust "common wisdom" (e.g., unsupported statements about "efficiency");
 such "wisdom" might be based on decades-old information or experiences from languages with very different properties than C++
 (e.g., C or Java).
 
@@ -22810,3 +22787,45 @@ Alternatively, we will decide that no change is needed and delete the entry.
   \[Sutter04]:        H. Sutter. Exceptional C++ Style (Addison-Wesley, 2004).
 * <a name="Taligent94"></a>
   \[Taligent94]: Taligent's Guide to Designing Programs (Addison-Wesley, 1994).
+
+## <a name="I-index"></a>Index
+
+# Index Page  
+## <a name="index.abstract"></a>Abstract  
+* [Abstract](#S-abstract)
+* See Also:
+  * [Intro](#index.intro)  
+  
+## <a name="index.code-clarity"></a>Code Clarity  
+* [P.1: Express ideas directly in code](#Rp-direct)
+* See Also:
+  
+  
+## <a name="index.const"></a>Const  
+* [I.2: Avoid non-`const` global variables](#Ri-global)
+* See Also:
+  * [Interfaces](#index.interfaces)  
+  
+## <a name="index.global-variables"></a>Global Variables  
+* [I.3: Avoid singletons](#Ri-singleton)
+* See Also:
+  * [Singleton](#index.singleton)  
+  
+## <a name="index.interfaces"></a>Interfaces  
+* [I.1: Make interfaces explicit](#Ri-explicit)
+* [I.2: Avoid non-`const` global variables](#Ri-global)
+* [I.4: Make interfaces precisely and strongly typed](#Ri-typed)
+* See Also:
+  * [Const](#index.const)  
+  
+## <a name="index.intro"></a>Intro  
+* [Abstract](#S-abstract)
+* See Also:
+  * [Abstract](#index.abstract)  
+  
+## <a name="index.singleton"></a>Singleton  
+* [I.3: Avoid singletons](#Ri-singleton)
+* See Also:
+  * [Global Variables](#index.global-variables)  
+  
+
